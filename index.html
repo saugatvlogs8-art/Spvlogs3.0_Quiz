@@ -1,0 +1,584 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>How Well Do You Know Me?</title>
+
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+
+body{
+ margin:0;
+ min-height:100vh;
+ background:linear-gradient(135deg,#0f172a,#4c1d95,#be185d);
+ color:white;
+ padding:20px;
+}
+
+.box{
+ max-width:500px;
+ margin:auto;
+ background:#ffffff14;
+ backdrop-filter:blur(18px);
+ border:1px solid #ffffff25;
+ border-radius:25px;
+ padding:24px;
+ box-shadow:0 20px 60px #0008;
+}
+
+.screen{display:none}
+.active{display:block}
+
+h1{text-align:center;margin:5px 0 10px}
+.sub{text-align:center;opacity:.75;line-height:1.5}
+
+.card{
+ background:#ffffff10;
+ border:1px solid #ffffff20;
+ padding:16px;
+ border-radius:16px;
+ margin:15px 0;
+}
+
+.q{
+ font-size:19px;
+ font-weight:bold;
+ margin-bottom:12px;
+}
+
+.option{
+ width:100%;
+ padding:14px;
+ margin:7px 0;
+ border:1px solid #ffffff25;
+ border-radius:12px;
+ background:#ffffff12;
+ color:white;
+ text-align:left;
+ cursor:pointer;
+ font-size:15px;
+}
+
+.option:hover{background:#ffffff25}
+
+.option.selected{
+ background:#7c3aed;
+ border-color:#c4b5fd;
+}
+
+.option.correct{
+ background:#16a34a;
+}
+
+.option.wrong{
+ background:#dc2626;
+}
+
+button.main{
+ width:100%;
+ border:0;
+ padding:15px;
+ border-radius:13px;
+ background:#8b5cf6;
+ color:white;
+ font-size:16px;
+ font-weight:bold;
+ margin-top:15px;
+ cursor:pointer;
+}
+
+input{
+ width:100%;
+ padding:14px;
+ border:0;
+ border-radius:12px;
+ outline:0;
+ margin:8px 0;
+}
+
+#linkBox{
+ display:none;
+ margin-top:15px;
+}
+
+.link{
+ background:#00000040;
+ padding:12px;
+ border-radius:10px;
+ word-break:break-all;
+ font-size:12px;
+}
+
+.score{
+ text-align:center;
+ font-size:60px;
+ font-weight:bold;
+ margin:20px 0;
+}
+
+.center{text-align:center}
+
+.resultItem{
+ padding:12px;
+ margin:8px 0;
+ border-radius:12px;
+ background:#ffffff12;
+}
+
+.small{
+ font-size:12px;
+ opacity:.6;
+ text-align:center;
+ margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<!-- CREATE SCREEN -->
+
+<div id="create" class="screen active">
+
+<h1>❤️ How Well Do You Know Me?</h1>
+
+<p class="sub">
+Choose your favourite answer for each question.
+Then share the challenge with your friend!
+</p>
+
+<div id="creatorQuestions"></div>
+
+<button class="main" onclick="createChallenge()">
+🔗 CREATE MY CHALLENGE
+</button>
+
+<div id="linkBox">
+
+<p>✅ Your challenge is ready!</p>
+
+<div class="link" id="shareLink"></div>
+
+<button class="main" onclick="copyLink()">
+📋 COPY LINK
+</button>
+
+<p class="small">
+Send this link to your friend.
+</p>
+
+</div>
+
+</div>
+
+
+<!-- FRIEND SCREEN -->
+
+<div id="friend" class="screen">
+
+<h1>🧐 How Well Do You Know Me?</h1>
+
+<p class="sub">
+Choose what you think your friend selected!
+</p>
+
+<input id="friendName" placeholder="Your name">
+
+<div id="friendQuestions"></div>
+
+<button class="main" onclick="submitFriend()">
+✅ SUBMIT ANSWERS
+</button>
+
+</div>
+
+
+<!-- RESULT SCREEN -->
+
+<div id="result" class="screen">
+
+<h1>🎉 Result!</h1>
+
+<p class="center" id="resultTitle"></p>
+
+<div class="score" id="score"></div>
+
+<div id="resultDetails"></div>
+
+<button class="main" onclick="location.href=location.pathname">
+🔄 CREATE NEW CHALLENGE
+</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ===========================
+   QUESTIONS
+=========================== */
+
+const questions = [
+
+{
+ q:"🏍️ What is my favourite bike?",
+ options:["KTM Duke","Yamaha R15","Royal Enfield","Pulsar"]
+},
+
+{
+ q:"🎨 What is my favourite colour?",
+ options:["Black","Red","Blue","White"]
+},
+
+{
+ q:"🎮 What is my favourite game?",
+ options:["Free Fire","PUBG","Minecraft","GTA"]
+},
+
+{
+ q:"🍕 What is my favourite food?",
+ options:["Pizza","Momo","Burger","Chowmein"]
+},
+
+{
+ q:"🎵 What type of music do I like?",
+ options:["Rap","Pop","Sad","Lo-fi"]
+},
+
+{
+ q:"📱 Which phone would I choose?",
+ options:["iPhone","Samsung","OnePlus","Redmi"]
+},
+
+{
+ q:"⚽ My favourite sport?",
+ options:["Football","Cricket","Basketball","Badminton"]
+},
+
+{
+ q:"🌍 Where would I love to travel?",
+ options:["Dubai","Japan","USA","Europe"]
+},
+
+{
+ q:"🎬 What do I enjoy watching?",
+ options:["Movies","Anime","Vlogs","Web Series"]
+},
+
+{
+ q:"💭 Which describes me best?",
+ options:["Funny","Silent","Friendly","Adventurous"]
+}
+
+];
+
+
+/* ===========================
+   CREATOR QUESTIONS
+=========================== */
+
+let creatorAnswers = [];
+
+function loadCreator(){
+
+ const box =
+ document.getElementById("creatorQuestions");
+
+ questions.forEach((item,index)=>{
+
+  let card=document.createElement("div");
+
+  card.className="card";
+
+  let q=document.createElement("div");
+
+  q.className="q";
+
+  q.innerText=
+  (index+1)+". "+item.q;
+
+  card.appendChild(q);
+
+  item.options.forEach((option,optIndex)=>{
+
+   let btn=document.createElement("button");
+
+   btn.className="option";
+
+   btn.innerText=option;
+
+   btn.onclick=()=>{
+
+    creatorAnswers[index]=optIndex;
+
+    card.querySelectorAll(".option")
+    .forEach(x=>x.classList.remove("selected"));
+
+    btn.classList.add("selected");
+
+   };
+
+   card.appendChild(btn);
+
+  });
+
+  box.appendChild(card);
+
+ });
+
+}
+
+loadCreator();
+
+
+/* ===========================
+   CREATE CHALLENGE
+=========================== */
+
+function createChallenge(){
+
+ if(creatorAnswers.length !== questions.length){
+
+  alert("Please select an answer for every question!");
+
+  return;
+ }
+
+ /*
+ Encode correct answers into URL.
+ This lets the friend open the challenge
+ without a database.
+ */
+
+ let data=btoa(
+ JSON.stringify(creatorAnswers)
+ );
+
+ let url=
+ location.origin+
+ location.pathname+
+ "?challenge="+encodeURIComponent(data);
+
+ document.getElementById("shareLink")
+ .innerText=url;
+
+ document.getElementById("linkBox")
+ .style.display="block";
+
+}
+
+
+/* ===========================
+   COPY LINK
+=========================== */
+
+function copyLink(){
+
+ let link=
+ document.getElementById("shareLink").innerText;
+
+ navigator.clipboard.writeText(link);
+
+ alert("✅ Link copied! Send it to your friend.");
+
+}
+
+
+/* ===========================
+   CHECK URL
+=========================== */
+
+const params=
+new URLSearchParams(location.search);
+
+const challenge=
+params.get("challenge");
+
+
+if(challenge){
+
+ try{
+
+  const answers=
+  JSON.parse(
+   atob(decodeURIComponent(challenge))
+  );
+
+  startFriendMode(answers);
+
+ }catch(e){
+
+  alert("Invalid challenge link!");
+
+ }
+
+}
+
+
+/* ===========================
+   FRIEND MODE
+=========================== */
+
+let friendAnswers=[];
+
+let correctAnswers=[];
+
+
+function startFriendMode(answers){
+
+ correctAnswers=answers;
+
+ document.getElementById("create")
+ .classList.remove("active");
+
+ document.getElementById("friend")
+ .classList.add("active");
+
+ const box=
+ document.getElementById("friendQuestions");
+
+ questions.forEach((item,index)=>{
+
+  let card=
+  document.createElement("div");
+
+  card.className="card";
+
+  let q=
+  document.createElement("div");
+
+  q.className="q";
+
+  q.innerText=
+  (index+1)+". "+item.q;
+
+  card.appendChild(q);
+
+  item.options.forEach((option,optIndex)=>{
+
+   let btn=
+   document.createElement("button");
+
+   btn.className="option";
+
+   btn.innerText=option;
+
+   btn.onclick=()=>{
+
+    friendAnswers[index]=optIndex;
+
+    card.querySelectorAll(".option")
+    .forEach(x=>x.classList.remove("selected"));
+
+    btn.classList.add("selected");
+
+   };
+
+   card.appendChild(btn);
+
+  });
+
+  box.appendChild(card);
+
+ });
+
+}
+
+
+/* ===========================
+   SUBMIT FRIEND ANSWERS
+=========================== */
+
+function submitFriend(){
+
+ let name=
+ document.getElementById("friendName")
+ .value.trim();
+
+ if(!name){
+
+  alert("Enter your name!");
+
+  return;
+ }
+
+ if(friendAnswers.length !== questions.length){
+
+  alert("Please answer all 10 questions!");
+
+  return;
+ }
+
+ let score=0;
+
+ let details="";
+
+ questions.forEach((item,index)=>{
+
+  let right=
+  correctAnswers[index] === friendAnswers[index];
+
+  if(right) score++;
+
+  details+=`
+
+  <div class="resultItem">
+
+  <b>${index+1}. ${item.q}</b><br>
+
+  ${
+   right
+   ? "✅ Correct"
+   : "❌ Wrong"
+  }
+
+  <br>
+
+  Your answer:
+  <b>${item.options[friendAnswers[index]]}</b>
+
+  <br>
+
+  ${
+   !right
+   ? "Correct answer: <b>"+
+     item.options[correctAnswers[index]]+
+     "</b>"
+   : ""
+  }
+
+  </div>
+
+  `;
+
+ });
+
+
+ document.getElementById("friend")
+ .classList.remove("active");
+
+ document.getElementById("result")
+ .classList.add("active");
+
+ document.getElementById("resultTitle")
+ .innerText=
+ name+" got:";
+
+ document.getElementById("score")
+ .innerText=
+ score+"/10";
+
+ document.getElementById("resultDetails")
+ .innerHTML=details;
+
+}
+
+</script>
+
+</body>
+</html>
